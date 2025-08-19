@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CropCure</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+
+<!-- Header -->
+<header class="header">
+    <div class = "logo">
+        <img src="static\images\CropCure.png" alt="CropCure Logo">
+    </div>
+    <nav>
+        <ul class="nav-links">
+            <li><a href="#intro"><b>About</b></a></li>
+            <li><a href="#working"><b>How it Works</b></a></li>
+            <li><a href="#upload-section"><b>Prediction</b></a></li>
+        </ul>
+    </nav>
+</header>
+
+<main>
+<section class="intro" id = "intro">
+    <h2> Welcome to <span class="highlight">CropCure</span></h2> 
+    <p>
+        Keep your crops healthy with the power of AI! <br>
+        Simply <b>upload a leaf image</b>, and our system will analyze it to detect potential <b>diseases</b>. <br>
+        Currently optimized for <b>potato crops</b> , with more crops coming soon!
+    </p>
+
+    <div class="intro-images">
+        <img id="image1" src="static/images/homepageimage1.png" alt="Healthy crop">
+        <img id="image2" src="static/images/homepageimage2.jpg" alt="Crop disease detection">
+    </div>
+</section>
+
+<section id="working" class="working">
+    <h2>How It Works</h2>
+    <div class="steps">
+        <div class="step-card">
+        <span class="step-number">1</span>
+        <p><b>Upload or capture</b> a photo of the leaf using your device.</p>
+        </div>
+
+        <div class="step-card">
+        <span class="step-number">2</span>
+        <p>Click the <b>Predict</b> button to let AI analyze the image.</p>
+        </div>
+
+        <div class="step-card">
+        <span class="step-number">3</span>
+        <p>Get <b>instant results</b> showing the detected disease and confidence score.</p>
+        </div>
+    </div>
+</section>
+
+<section class="upload-section" id="upload-section">
+    <h2>Upload or Capture Crop Image</h2>
+        <form method="POST" enctype="multipart/form-data" class="upload-form">
+    
+        <!-- File input -->
+        <label for="upload" class="file-label">Choose or Capture Image</label>
+        <input type="file" id="upload" name="image" accept="image/*" capture="environment" required>
+    <!-- capture="environment" opens back camera; use "user" for front camera -->
+
+    <!-- Submit button -->
+        <button type="submit" class="predict-btn">Predict</button>
+        </form>
+</section>
+
+        <!-- Prediction Result -->
+{% if prediction %}
+<section class="result">
+    <h2>Prediction Result</h2>
+        <img src="{{ url_for('static', filename='uploads/' + image) }}" width="300">
+
+        {% if prediction[0] == "Not a leaf" %}
+            <p><strong>Result:</strong> The uploaded image is not a leaf. Please upload a crop leaf.</p>
+        {% else %}
+            <p><strong>Disease:</strong> {{ prediction[0] }}</p>
+            <p><strong>Confidence:</strong> {{ prediction[1] * 100 | round(2) }}%</p>
+            
+            <h3>Class Probabilities</h3>
+            <ul>
+                {% for cls, prob in prediction[2].items() %}
+                    <li>{{ cls }}: {{ prob }}</li>
+                {% endfor %}
+            </ul>
+        {% endif %}
+</section>
+{% endif %}
+
+</main>
+
+    <!-- Footer -->
+<footer>
+    <p>&copy; 2025 CropCure | Built with Flask & PyTorch</p>
+</footer>
+
+</body>
+</html>
