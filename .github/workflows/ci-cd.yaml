@@ -37,6 +37,8 @@ jobs:
       # Step 1: Checkout code for deploy
       - name: Checkout Code
         uses: actions/checkout@v3
+        with:
+          fetch-depth: 0  # Fetch all history for proper git operations
 
       # Step 2: Debug HF_TOKEN (optional, remove in production)
       - name: Debug HF_TOKEN
@@ -58,21 +60,24 @@ jobs:
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
           git config --global user.name "github-actions[bot]"
 
-          # Prepare Hugging Face repo URL
-          REPO_URL="https://$HF_TOKEN@huggingface.co/spaces/Sai240723/CropCure"
+          # Clone the Hugging Face repository separately
+          git clone https://huggingface.co/spaces/Sai240723/CropCure hf-repo
+          cd hf-repo
 
-          # Add or update remote 'space' safely
-          if git remote get-url space 2>/dev/null; then
-              git remote set-url space $REPO_URL
-          else
-              git remote add space $REPO_URL
-          fi
+          # Copy all files from the current directory (except .git)
+          cp -r ../* .
+          cp -r ../.* . 2>/dev/null || true  # Copy hidden files, ignore errors
 
-          # Commit and push changes if any
+          # Remove any files that shouldn't be copied
+          rm -rf .git .github __pycache__ *.pyc
+
+          # Add all files
+          git add .
+
+          # Check if there are changes to commit
           if [ -n "$(git status --porcelain)" ]; then
-              git add .
-              git commit -m "Automated commit from GitHub Actions"
-              git push space main --force
+            git commit -m "Automated update from GitHub Actions"
+            git push https://$HF_TOKEN@huggingface.co/spaces/Sai240723/CropCure main
           else
-              echo "No changes to commit"
+            echo "No changes to commit"
           fi
