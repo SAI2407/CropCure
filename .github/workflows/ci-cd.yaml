@@ -51,39 +51,28 @@ jobs:
             exit 1
           fi
 
-      # Step 3: Deploy to Hugging Face Space
-      - name: Push to Hugging Face Space
+      # Step 3: Install huggingface_hub
+      - name: Install huggingface_hub
+        run: pip install huggingface_hub
+
+      # Step 4: Upload to Hugging Face using the Python library
+      - name: Upload to Hugging Face Space
         env:
           HF_TOKEN: ${{ secrets.HF_TOKEN }}
         run: |
-          # Configure Git user
-          git config --global user.email "github-actions[bot]@users.noreply.github.com"
-          git config --global user.name "github-actions[bot]"
-
-          # Create a temporary directory for the Hugging Face repo
-          mkdir -p /tmp/hf-deploy
-          cd /tmp/hf-deploy
+          python -c "
+          import os
+          from huggingface_hub import HfApi, upload_folder
           
-          # Clone the Hugging Face repository
-          git clone https://$HF_TOKEN@huggingface.co/spaces/Sai240723/CropCure .
+          # Initialize API
+          api = HfApi(token=os.environ['HF_TOKEN'])
           
-          # Remove all existing files except .git
-          find . -maxdepth 1 ! -name '.git' ! -name '.' -exec rm -rf {} +
-          
-          # Copy all files from the GitHub repo
-          cp -r $GITHUB_WORKSPACE/* .
-          cp -r $GITHUB_WORKSPACE/.* . 2>/dev/null || true
-          
-          # Clean up files that shouldn't be in the Space
-          rm -rf .git .github __pycache__ *.pyc
-          
-          # Add all files
-          git add .
-          
-          # Check if there are changes to commit
-          if [ -n "$(git status --porcelain)" ]; then
-            git commit -m "Automated update from GitHub Actions"
-            git push origin main
-          else
-            echo "No changes to commit"
-          fi
+          # Upload entire folder to Space
+          api.upload_folder(
+              folder_path='.',
+              repo_id='Sai240723/CropCure',
+              repo_type='space',
+              ignore_patterns=['.git*', '.github*', '__pycache__*', '*.pyc', 'README.md']
+          )
+          print('Upload completed successfully!')
+          "
