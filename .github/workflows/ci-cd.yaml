@@ -2,7 +2,7 @@ name: CI-CD for CropCure
 
 on:
   push:
-    branches: [ "main" ]
+    branches: ["main"]
 
 jobs:
   build-and-test:
@@ -34,11 +34,22 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      # Checkout code again for deploy
+      # Step 1: Checkout code for deploy
       - name: Checkout Code
         uses: actions/checkout@v3
 
-      # Step 5: Deploy to Hugging Face Space
+      # Step 2: Debug HF_TOKEN (optional, remove in production)
+      - name: Debug HF_TOKEN
+        env:
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
+        run: |
+          echo "HF_TOKEN length: ${#HF_TOKEN}"
+          if [ -z "$HF_TOKEN" ]; then
+            echo "HF_TOKEN is empty. Check repository secrets!"
+            exit 1
+          fi
+
+      # Step 3: Deploy to Hugging Face Space
       - name: Push to Hugging Face Space
         env:
           HF_TOKEN: ${{ secrets.HF_TOKEN }}
@@ -47,14 +58,17 @@ jobs:
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
           git config --global user.name "github-actions[bot]"
 
-          # Add or update remote 'space' with HF token
-          if git remote | grep -q space; then
-              git remote set-url space https://$HF_TOKEN@huggingface.co/spaces/Sai240723/CropCure
+          # Prepare Hugging Face repo URL
+          REPO_URL="https://$HF_TOKEN@huggingface.co/spaces/Sai240723/CropCure"
+
+          # Add or update remote 'space' safely
+          if git remote get-url space 2>/dev/null; then
+              git remote set-url space $REPO_URL
           else
-              git remote add space https://$HF_TOKEN@huggingface.co/spaces/Sai240723/CropCure
+              git remote add space $REPO_URL
           fi
 
-          # Commit changes only if there are any
+          # Commit and push changes if any
           if [ -n "$(git status --porcelain)" ]; then
               git add .
               git commit -m "Automated commit from GitHub Actions"
