@@ -47,12 +47,15 @@ jobs:
 
           # Add or update remote 'space' with HF token
           if git remote | grep -q space; then
-              git remote set-url space https://$HF_TOKEN@huggingface.co/spaces/sai240723/CropCure
+              git remote set-url space https://$HF_TOKEN@huggingface.co/spaces/Sai240723/CropCure
           else
-              git remote add space https://$HF_TOKEN@huggingface.co/spaces/sai240723/CropCure
+              git remote add space https://$HF_TOKEN@huggingface.co/spaces/Sai240723/CropCure
           fi
 
-          # Commit and push changes
-          git add .
-          git commit -m "Automated commit from GitHub Actions" || echo "No changes to commit"
-          git push space main --force
+          if [ -n "$(git status --porcelain)" ]; then
+            git add .
+            git commit -m "Automated commit from GitHub Actions"
+            git push space main --force
+          else
+            echo "No changes to commit"
+          fi
