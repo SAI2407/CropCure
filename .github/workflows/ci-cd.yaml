@@ -40,7 +40,8 @@ jobs:
         run: |
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
           git config --global user.name "github-actions[bot]"
-          git remote set-url space https://huggingface.co/spaces/sai240723/CropCure
+          # Add remote if it doesn't exist
+          git remote add space https://$HF_TOKEN@huggingface.co/spaces/sai240723/CropCure || echo "Remote already exists"
           git push space main --force
         env:
           HF_TOKEN: ${{ secrets.HF_TOKEN }}
