@@ -38,9 +38,9 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v3
         with:
-          fetch-depth: 0  # Fetch all history for proper git operations
+          fetch-depth: 0
 
-      # Step 2: Debug HF_TOKEN (optional, remove in production)
+      # Step 2: Debug HF_TOKEN
       - name: Debug HF_TOKEN
         env:
           HF_TOKEN: ${{ secrets.HF_TOKEN }}
@@ -60,24 +60,30 @@ jobs:
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
           git config --global user.name "github-actions[bot]"
 
-          # Clone the Hugging Face repository separately
-          git clone https://huggingface.co/spaces/Sai240723/CropCure hf-repo
-          cd hf-repo
-
-          # Copy all files from the current directory (except .git)
-          cp -r ../* .
-          cp -r ../.* . 2>/dev/null || true  # Copy hidden files, ignore errors
-
-          # Remove any files that shouldn't be copied
+          # Create a temporary directory for the Hugging Face repo
+          mkdir -p /tmp/hf-deploy
+          cd /tmp/hf-deploy
+          
+          # Clone the Hugging Face repository
+          git clone https://$HF_TOKEN@huggingface.co/spaces/Sai240723/CropCure .
+          
+          # Remove all existing files except .git
+          find . -maxdepth 1 ! -name '.git' ! -name '.' -exec rm -rf {} +
+          
+          # Copy all files from the GitHub repo
+          cp -r $GITHUB_WORKSPACE/* .
+          cp -r $GITHUB_WORKSPACE/.* . 2>/dev/null || true
+          
+          # Clean up files that shouldn't be in the Space
           rm -rf .git .github __pycache__ *.pyc
-
+          
           # Add all files
           git add .
-
+          
           # Check if there are changes to commit
           if [ -n "$(git status --porcelain)" ]; then
             git commit -m "Automated update from GitHub Actions"
-            git push https://$HF_TOKEN@huggingface.co/spaces/Sai240723/CropCure main
+            git push origin main
           else
             echo "No changes to commit"
           fi
