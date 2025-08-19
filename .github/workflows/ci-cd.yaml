@@ -1,4 +1,4 @@
-name: CI-CD for CropCure 
+name: CI-CD for CropCure
 
 on:
   push:
@@ -23,7 +23,7 @@ jobs:
       - name: Install Dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install -r requirements.txt
+          pip install -r requirements.txt --quiet
 
       # Step 4: Run tests
       - name: Run tests
@@ -34,6 +34,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      # Checkout code again for deploy
       - name: Checkout Code
         uses: actions/checkout@v3
 
@@ -42,6 +43,7 @@ jobs:
         env:
           HF_TOKEN: ${{ secrets.HF_TOKEN }}
         run: |
+          # Configure Git user
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
           git config --global user.name "github-actions[bot]"
 
@@ -52,10 +54,11 @@ jobs:
               git remote add space https://$HF_TOKEN@huggingface.co/spaces/Sai240723/CropCure
           fi
 
+          # Commit changes only if there are any
           if [ -n "$(git status --porcelain)" ]; then
-            git add .
-            git commit -m "Automated commit from GitHub Actions"
-            git push space main --force
+              git add .
+              git commit -m "Automated commit from GitHub Actions"
+              git push space main --force
           else
-            echo "No changes to commit"
+              echo "No changes to commit"
           fi
