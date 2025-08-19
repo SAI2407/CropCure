@@ -1,0 +1,13 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+new-env/
+static/uploads/
+models/
+TL/
+Data_pipeline.py
+
+
+
