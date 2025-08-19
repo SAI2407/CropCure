@@ -2,13 +2,19 @@ from flask import Flask, render_template, request
 from predict import predict
 import os
 from Transformation import transformation
+from flask import send_from_directory
 
 app = Flask(__name__)
 # Path of uploads folder
-UPLOAD_FOLDER = os.path.join("static", "uploads")
+UPLOAD_FOLDER = os.path.join(os.getcwd(), "uploads")
 # Makes upload folder if it doesn't exist
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
+
+@app.route("/uploads/<filename>")
+def uploaded_file(filename):
+    return send_from_directory(app.config["UPLOAD_FOLDER"], filename)
+
 @app.route("/", methods=["GET", "POST"])
 def index():
     if request.method == "POST":
@@ -23,7 +29,7 @@ def index():
     return render_template("index.html")
 
 if __name__ == "__main__":
-    app.run(debug= False , host = "0.0.0.0" , port = 7860)
+    app.run(debug= True , host = "0.0.0.0" , port = 7860)
 
 
 

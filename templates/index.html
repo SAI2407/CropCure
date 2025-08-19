@@ -75,7 +75,7 @@
 {% if prediction %}
 <section class="result">
     <h2>Prediction Result</h2>
-        <img src="{{ url_for('static', filename='uploads/' + image) }}" width="300">
+        <img src="{{ url_for('uploaded_file', filename=image) }}" alt="Uploaded Image">
 
         {% if prediction[0] == "Not a leaf" %}
             <p><strong>Result:</strong> The uploaded image is not a leaf. Please upload a crop leaf.</p>
